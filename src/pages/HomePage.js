@@ -14,10 +14,11 @@ import axios from "axios";
 
 const HomePage = () => {
   const navigate = useNavigate();
+  // const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [featuredMovies, setFeaturedMovies] = useState([]);
+  const [totalMovies, setTotalMovies] = useState(12);
 
-  const handleSearch = (event) => {
-    // Handle search input changes
-  };
 
   const handleSignIn = () => {
     // Handle sign-in action
@@ -26,10 +27,6 @@ const HomePage = () => {
   const handleHamburgerClick = () => {
     // Handle hamburger menu click
   };
-
-
-  const [featuredMovies, setFeaturedMovies] = useState([]); // State to store featured movies
-  const [totalMovies, setTotalMovies] = useState(12);
 
   useEffect(() => {
     const fetchFeaturedMovies = async () => {
@@ -62,6 +59,30 @@ const HomePage = () => {
     navigate(`/movies/${movieId}`);
   };
 
+  // const handleSearchInputChange = (event) => {
+  //   setSearchQuery(event.target.value);
+  // };
+
+  const handleSearch = async (query) => {
+    if (query.trim() === '') {
+      // If the search query is empty, reset the search results
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      // Replace 'YOUR_API_KEY' with your TMDB API key
+      const response = await axios.get(
+        `https://api.themoviedb.org/3/search/movie?api_key=9ff2abcab00a574f986e19bc5e425a4f&language=en-US&query=${query}&page=1`
+      );
+      const { results } = response.data;
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error fetching search results:', error);
+    }
+  };
+
+
 
 
   return (
@@ -90,9 +111,10 @@ const HomePage = () => {
                 logo="images/logo.png"
                 // brandName="Movie Box"
                 searchPlaceholder="What do you want to watch?"
-                onSearch={handleSearch}
                 onSignIn={handleSignIn}
                 onHamburgerClick={handleHamburgerClick}
+                onSearch={handleSearch}
+              // onSearchQueryChange={(query) => setSearchQuery(query)}
               // additionalItems={<button>Custom Button</button>}
               />
 
@@ -132,16 +154,18 @@ const HomePage = () => {
               </div>
 
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {featuredMovies.slice(0, totalMovies).map((movie) => (
-                <div
-                  key={movie.id}
-                  onClick={() => openMovieDetailsInNewTab(movie.id)}
-                >
-                  <MovieCard movie={movie} />
-                </div>
-              ))}
+              {searchResults.length > 0
+                ? searchResults.map((movie) => (
+                  <div key={movie.id} onClick={() => openMovieDetailsInNewTab(movie.id)}>
+                    <MovieCard movie={movie} />
+                  </div>
+                ))
+                : featuredMovies.slice(0, totalMovies).map((movie) => (
+                  <div key={movie.id} onClick={() => openMovieDetailsInNewTab(movie.id)}>
+                    <MovieCard movie={movie} />
+                  </div>
+                ))}
             </div>
 
 
